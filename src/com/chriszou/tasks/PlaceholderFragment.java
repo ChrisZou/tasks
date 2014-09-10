@@ -107,8 +107,8 @@ public class PlaceholderFragment extends Fragment {
 	void onAddingResult(Task task) {
 		mAddEdit.setEnabled(true);
 		if (task != null) {
-			mTasks.add(task);
-			mTaskAdapter.notifyDataSetChanged();
+			mTasks.add(0, task);
+			updateTaskList(mTasks);
 			mAddEdit.setText("");
 		} else {
 			notifyError("Error during adding task");

@@ -59,7 +59,6 @@ public class Task {
 	 */
 	public Task save() {
 		String json = new Gson().toJson(this);
-		L.l("data: " + json);
 		try {
 			HttpResponse response = UrlUtils.postJson(SERVER_URL, json);
 			if (response.getStatusLine().getStatusCode() == 201) {
