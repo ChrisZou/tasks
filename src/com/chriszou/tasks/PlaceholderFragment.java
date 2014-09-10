@@ -27,6 +27,7 @@ import android.widget.TextView;
 import com.chriszou.androidlibs.BaseViewBinderAdapter;
 import com.chriszou.androidlibs.BaseViewBinderAdapter.ViewBinder;
 import com.chriszou.androidlibs.L;
+import com.chriszou.androidlibs.Notifier;
 import com.chriszou.androidlibs.OnEnterListener;
 import com.chriszou.androidlibs.Toaster;
 
@@ -137,6 +138,13 @@ public class PlaceholderFragment extends Fragment {
 	void updateTaskList(List<Task> tasks) {
 		mTaskAdapter = new BaseViewBinderAdapter<Task>(getActivity(), tasks, mTaskViewBinder);
 		mTaskList.setAdapter(mTaskAdapter);
+
+		Notifier notifier = new Notifier(getActivity());
+		notifier.setOnGoing(true);
+
+		if(mTasks!=null && mTasks.size()>0) {
+			notifier.fireActivity(R.drawable.tasks, "Tasks", mTasks.get(0).title, MainActivity_.class);
+		}
 	}
 
 	@UiThread
