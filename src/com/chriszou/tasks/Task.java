@@ -9,12 +9,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.chriszou.androidlibs.L;
 import com.chriszou.androidlibs.UrlContentLoader;
+import com.chriszou.androidlibs.UrlUtils;
+import com.google.gson.Gson;
 
 /**
  * @author zouyong
@@ -35,8 +40,41 @@ public class Task {
 		return tasks;
 	}
 
-	public void save() {
+	public Task() {
+		id = "";
+		title = "";
+		note = "";
+	}
 
+	public Task(String title) {
+		this.title = title;
+		id = "";
+		note = "";
+	}
+
+	/**
+	 * Save the Task and return the saved task instance;
+	 * 
+	 * @return
+	 */
+	public Task save() {
+		String json = new Gson().toJson(this);
+		L.l("data: " + json);
+		try {
+			HttpResponse response = UrlUtils.postJson(SERVER_URL, json);
+			if (response.getStatusLine().getStatusCode() == 201) {
+				String content = EntityUtils.toString(response.getEntity(), "UTF-8");
+				Task t = new Gson().fromJson(content, Task.class);
+				return t;
+			}
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public void destroy() {
