@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Tasks.iml" filepath="$PROJECT_DIR$/Tasks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../androidlibs/androidlibs/androidlibs-androidlibs.iml" filepath="$PROJECT_DIR$/../androidlibs/androidlibs/androidlibs-androidlibs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tasks/tasks.iml" filepath="$PROJECT_DIR$/tasks/tasks.iml" />
+    </modules>
+  </component>
+</project>
+

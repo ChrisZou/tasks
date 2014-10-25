@@ -1,6 +1,6 @@
 /**
  * PlaceholderFragment.java
- * 
+ *
  * Created by zouyong on Sep 9, 2014,2014
  */
 package com.chriszou.tasks;
@@ -24,8 +24,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.chriszou.androidlibs.BaseViewBinderAdapter;
-import com.chriszou.androidlibs.BaseViewBinderAdapter.ViewBinder;
+import com.chriszou.androidlibs.ViewBinderAdapter;
+import com.chriszou.androidlibs.ViewBinderAdapter.ViewBinder;
 import com.chriszou.androidlibs.L;
 import com.chriszou.androidlibs.Notifier;
 import com.chriszou.androidlibs.OnEnterListener;
@@ -33,7 +33,7 @@ import com.chriszou.androidlibs.Toaster;
 
 /**
  * @author zouyong
- * 
+ *
  */
 @EFragment(R.layout.fragment_main)
 public class PlaceholderFragment extends Fragment {
@@ -49,8 +49,8 @@ public class PlaceholderFragment extends Fragment {
 
 	List<Task> mTasks;
 
-	BaseViewBinderAdapter<String> mTagAdapter;
-	BaseViewBinderAdapter<Task> mTaskAdapter;
+	ViewBinderAdapter<String> mTagAdapter;
+	ViewBinderAdapter<Task> mTaskAdapter;
 	private int mCurrentTag = 0;
 
 	ViewBinder<String> mTagViewBinder = new ViewBinder<String>() {
@@ -132,11 +132,11 @@ public class PlaceholderFragment extends Fragment {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@UiThread
 	void updateTaskList(List<Task> tasks) {
-		mTaskAdapter = new BaseViewBinderAdapter<Task>(getActivity(), tasks, mTaskViewBinder);
+		mTaskAdapter = new ViewBinderAdapter<Task>(getActivity(), tasks, mTaskViewBinder);
 		mTaskList.setAdapter(mTaskAdapter);
 
 		Notifier notifier = new Notifier(getActivity());
@@ -160,7 +160,7 @@ public class PlaceholderFragment extends Fragment {
 			}
 		}
 
-		mTagAdapter = new BaseViewBinderAdapter<String>(getActivity(), tags, mTagViewBinder);
+		mTagAdapter = new ViewBinderAdapter<String>(getActivity(), tags, mTagViewBinder);
 		mTagList.setAdapter(mTagAdapter);
 		mTagList.setOnItemClickListener(new OnItemClickListener() {
 			@Override

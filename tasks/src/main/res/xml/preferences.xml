@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="@string/pref_string_server_url"
+        android:title="Workout duration"
+        android:defaultValue="http://112.124.121.155:3000/tasks.json" />
+</PreferenceScreen>

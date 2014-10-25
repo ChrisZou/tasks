@@ -1,13 +1,13 @@
 /**
  * Task.java
- * 
+ *
  * Created by zouyong on Sep 9, 2014,2014
  */
 package com.chriszou.tasks;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import com.chriszou.androidlibs.HttpUtils;
+import com.chriszou.androidlibs.L;
+import com.google.gson.Gson;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -16,10 +16,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.chriszou.androidlibs.L;
-import com.chriszou.androidlibs.UrlContentLoader;
-import com.chriszou.androidlibs.UrlUtils;
-import com.google.gson.Gson;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author zouyong
@@ -33,8 +32,7 @@ public class Task {
 
 	public static List<Task> all() throws IOException, JSONException {
 		L.l("getting task");
-		UrlContentLoader loader = new UrlContentLoader(SERVER_URL);
-		String tasksString = loader.executeSync();
+		String tasksString = HttpUtils.getContent(SERVER_URL);
 		L.l("tasks: "+tasksString);
 		List<Task>tasks = jsonArrayToList(tasksString);
 		return tasks;
@@ -54,13 +52,13 @@ public class Task {
 
 	/**
 	 * Save the Task and return the saved task instance;
-	 * 
+	 *
 	 * @return
 	 */
 	public Task save() {
 		String json = new Gson().toJson(this);
 		try {
-			HttpResponse response = UrlUtils.postJson(SERVER_URL, json);
+			HttpResponse response = HttpUtils.postJson(SERVER_URL, json);
 			if (response.getStatusLine().getStatusCode() == 201) {
 				String content = EntityUtils.toString(response.getEntity(), "UTF-8");
 				Task t = new Gson().fromJson(content, Task.class);
