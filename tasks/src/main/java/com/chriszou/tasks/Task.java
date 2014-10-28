@@ -74,10 +74,6 @@ public class Task {
 		return null;
 	}
 
-	public void destroy() {
-
-	}
-
 	private static List<Task> jsonArrayToList(String jsonArray) throws JSONException {
 		List<Task>tasks = new ArrayList<Task>();
 		JSONArray array = new JSONArray(jsonArray);

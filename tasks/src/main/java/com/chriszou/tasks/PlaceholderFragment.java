@@ -5,15 +5,6 @@
  */
 package com.chriszou.tasks;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Background;
-import org.androidannotations.annotations.EFragment;
-import org.androidannotations.annotations.UiThread;
-import org.androidannotations.annotations.ViewById;
-
 import android.app.Fragment;
 import android.graphics.Color;
 import android.view.View;
@@ -24,12 +15,20 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.chriszou.androidlibs.ViewBinderAdapter;
-import com.chriszou.androidlibs.ViewBinderAdapter.ViewBinder;
 import com.chriszou.androidlibs.L;
-import com.chriszou.androidlibs.Notifier;
 import com.chriszou.androidlibs.OnEnterListener;
 import com.chriszou.androidlibs.Toaster;
+import com.chriszou.androidlibs.ViewBinderAdapter;
+import com.chriszou.androidlibs.ViewBinderAdapter.ViewBinder;
+
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.UiThread;
+import org.androidannotations.annotations.ViewById;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author zouyong
@@ -139,13 +138,14 @@ public class PlaceholderFragment extends Fragment {
 		mTaskAdapter = new ViewBinderAdapter<Task>(getActivity(), tasks, mTaskViewBinder);
 		mTaskList.setAdapter(mTaskAdapter);
 
-		Notifier notifier = new Notifier(getActivity());
-		notifier.setOnGoing(true);
-
-		if(mTasks!=null && mTasks.size()>0) {
-			notifier.fireActivity(R.drawable.tasks, "Tasks", mTasks.get(0).title, MainActivity_.class);
-		}
+        showNotification();
 	}
+
+    private void showNotification() {
+        if(mTasks!=null && mTasks.size()>0) {
+            Utils.showTaskNotification(getActivity(), mTasks.get(0).title);
+        }
+    }
 
 	@UiThread
 	void updateTagList(List<Task> tasks) {
