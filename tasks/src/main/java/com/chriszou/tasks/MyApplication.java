@@ -25,11 +25,11 @@ public class MyApplication extends UtilApplication implements BootReceiver.OnBoo
 
     @Override
     public void onBootCompleted(Context context, Intent intent) {
-        showNotification(null);
+        loadTaskAndShowNotification(null);
     }
 
     @Background
-    void showNotification(Context context) {
+    void loadTaskAndShowNotification(Context context) {
         try {
             Task t = Task.all().get(0);
             showNotification(context, t);

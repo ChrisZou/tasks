@@ -9,7 +9,7 @@ import com.chriszou.androidlibs.Notifier;
  */
 public class Utils {
     /**
-     *
+     * Show a notification to the system notificationbar, when user clicks it, it will open the MainActivity
      */
     public static void showTaskNotification(Context context, String title) {
         Notifier notifier = new Notifier(context);

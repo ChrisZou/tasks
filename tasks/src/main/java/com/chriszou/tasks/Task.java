@@ -6,7 +6,6 @@
 package com.chriszou.tasks;
 
 import com.chriszou.androidlibs.HttpUtils;
-import com.chriszou.androidlibs.L;
 import com.google.gson.Gson;
 
 import org.apache.http.HttpResponse;
@@ -31,9 +30,7 @@ public class Task {
 	public String note;
 
 	public static List<Task> all() throws IOException, JSONException {
-		L.l("getting task");
 		String tasksString = HttpUtils.getContent(SERVER_URL);
-		L.l("tasks: "+tasksString);
 		List<Task>tasks = jsonArrayToList(tasksString);
 		return tasks;
 	}
@@ -65,10 +62,8 @@ public class Task {
 				return t;
 			}
 		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
