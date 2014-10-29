@@ -7,6 +7,7 @@ package com.chriszou.tasks;
 
 import android.app.Fragment;
 import android.graphics.Color;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -35,7 +36,7 @@ import java.util.List;
  *
  */
 @EFragment(R.layout.fragment_main)
-public class PlaceholderFragment extends Fragment {
+public class PlaceholderFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
 	@ViewById(R.id.main_tags_list)
 	ListView mTagList;
@@ -45,6 +46,9 @@ public class PlaceholderFragment extends Fragment {
 
 	@ViewById(R.id.main_add_edit)
 	EditText mAddEdit;
+
+    @ViewById(R.id.swipe_container)
+    SwipeRefreshLayout mSwipeLayout;
 
 	List<Task> mTasks;
 
@@ -75,8 +79,14 @@ public class PlaceholderFragment extends Fragment {
 
 	@AfterViews
 	void loadData() {
+        mSwipeLayout.setOnRefreshListener(this);
+        mSwipeLayout.setColorScheme(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+        
 		init();
-		getTasks();
+		reloadTasks();
 	}
 
 	private void init() {
@@ -120,7 +130,7 @@ public class PlaceholderFragment extends Fragment {
 	}
 
 	@Background
-	void getTasks() {
+	void reloadTasks() {
 		try {
 			mTasks = Task.all();
 			updateTaskList(mTasks);
@@ -137,6 +147,8 @@ public class PlaceholderFragment extends Fragment {
 	void updateTaskList(List<Task> tasks) {
 		mTaskAdapter = new ViewBinderAdapter<Task>(getActivity(), tasks, mTaskViewBinder);
 		mTaskList.setAdapter(mTaskAdapter);
+        mSwipeLayout.setRefreshing(false);
+
 
         showNotification();
 	}
@@ -207,4 +219,9 @@ public class PlaceholderFragment extends Fragment {
 
 		return tags;
 	}
+
+    @Override
+    public void onRefresh() {
+        reloadTasks();
+    }
 }
