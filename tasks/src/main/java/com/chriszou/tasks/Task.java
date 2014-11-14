@@ -25,6 +25,7 @@ import java.util.List;
  */
 public class Task {
 	public static final String SERVER_URL = "http://112.124.121.155/tasks.json";
+    private static final String TASKS_URL = "http://112.124.121.155/tasks";
 	public String id;
 	public String title;
 	public String note;
@@ -83,4 +84,11 @@ public class Task {
 
 		return tasks;
 	}
+
+    public static boolean remove(Task item) throws IOException {
+        String url = TASKS_URL+"/"+item.id;
+        HttpResponse response = HttpUtils.deleteRequest(url);
+        return HttpUtils.responseOK(response);
+    }
+
 }

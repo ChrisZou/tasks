@@ -10,6 +10,10 @@ buildscript {
     }
 }
 
+repositories {
+    maven { url 'http://clinker.47deg.com/nexus/content/groups/public' }
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'com.neenbedankt.android-apt'
 
@@ -36,7 +40,12 @@ dependencies {
     apt "org.androidannotations:androidannotations:3.0.1"
     compile 'org.androidannotations:androidannotations-api:3.0.1'
 
+
     compile project(':..:androidlibs:androidlibs')
+
+    compile ('com.fortysevendeg.swipelistview:swipelistview:1.0-SNAPSHOT@aar') {
+        transitive = true
+    }
 }
 
 apt {

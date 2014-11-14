@@ -11,8 +11,8 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -21,6 +21,8 @@ import com.chriszou.androidlibs.OnEnterListener;
 import com.chriszou.androidlibs.Toaster;
 import com.chriszou.androidlibs.ViewBinderAdapter;
 import com.chriszou.androidlibs.ViewBinderAdapter.ViewBinder;
+import com.fortysevendeg.swipelistview.BaseSwipeListViewListener;
+import com.fortysevendeg.swipelistview.SwipeListView;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -28,7 +30,9 @@ import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,23 +42,38 @@ import java.util.List;
 @EFragment(R.layout.fragment_main)
 public class PlaceholderFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
-	@ViewById(R.id.main_tags_list)
+
+    @ViewById(R.id.main_tags_list)
 	ListView mTagList;
 
 	@ViewById(R.id.main_tasks_list)
-	ListView mTaskList;
+    SwipeListView mTaskList;
 
 	@ViewById(R.id.main_add_edit)
 	EditText mAddEdit;
 
-    @ViewById(R.id.swipe_container)
-    SwipeRefreshLayout mSwipeLayout;
+//    @ViewById(R.id.swipe_container)
+//    SwipeRefreshLayout mSwipeLayout;
 
 	List<Task> mTasks;
 
 	ViewBinderAdapter<String> mTagAdapter;
 	ViewBinderAdapter<Task> mTaskAdapter;
 	private int mCurrentTag = 0;
+
+    ViewBinder<Task> mTaskViewBinder = new ViewBinder<Task>() {
+        @Override
+        public void bindView(final int position, View view, final Task item, ViewGroup parent) {
+            TextView tView = (TextView) view.findViewById(R.id.task_item_title);
+            tView.setText(item.title);
+
+            ImageView deleteView = (ImageView) view.findViewById(R.id.task_item_delete);
+            //Set this view's position in its tag, when clicking this view, fetch its position from its tag and delete it.
+            deleteView.setTag(R.id.tag_item_position, position);
+            deleteView.setOnClickListener(mDeleteListener);
+
+        }
+    };
 
 	ViewBinder<String> mTagViewBinder = new ViewBinder<String>() {
 		@Override
@@ -66,40 +85,62 @@ public class PlaceholderFragment extends Fragment implements SwipeRefreshLayout.
 		}
 	};
 
-	ViewBinder<Task> mTaskViewBinder = new ViewBinder<Task>() {
-		@Override
-		public void bindView(int position, View view, Task item, ViewGroup parent) {
-			TextView tView = (TextView) view;
-			tView.setText(item.title);
-		}
-	};
+    private View.OnClickListener mDeleteListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            int position = (Integer)v.getTag(R.id.tag_item_position);
+            removeTask(position);
+        }
+    };
 
-	public PlaceholderFragment() {
+    @Override
+    public void onResume() {
+        super.onResume();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                int swipeLeftOffset = mTaskList.getWidth() - (int)getResources().getDimension(R.dimen.delete_button_width);
+                mTaskList.setOffsetLeft(swipeLeftOffset);
+            }
+        };
+        mTaskList.post(runnable);
+    }
+
+    public PlaceholderFragment() {
 	}
 
 	@AfterViews
 	void loadData() {
-        mSwipeLayout.setOnRefreshListener(this);
-        mSwipeLayout.setColorScheme(android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light,
-                android.R.color.holo_orange_light,
-                android.R.color.holo_red_light);
-        
 		init();
 		reloadTasks();
 	}
 
 	private void init() {
+        mTaskList.setSwipeListViewListener(new MySwipeListViewListener());
+        mTagList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0) {
+                    updateTaskList(mTasks);
+                } else {
+                    String tag = mTagAdapter.getItem(position);
+                    filterTasks(tag);
+                }
+                mCurrentTag = position;
+                mTagAdapter.notifyDataSetChanged();
+            }
+        });
+
 		mAddEdit.setOnKeyListener(new OnEnterListener() {
-			@Override
-			public void onEnter() {
-				String title = mAddEdit.getText().toString().trim();
-				if (title.length() > 0) {
-					mAddEdit.setEnabled(false);
-					addTask(title);
-				}
-			}
-		});
+            @Override
+            public void onEnter() {
+                String title = mAddEdit.getText().toString().trim();
+                if (title.length() > 0) {
+                    mAddEdit.setEnabled(false);
+                    addTask(title);
+                }
+            }
+        });
 	}
 
 	@Background
@@ -108,6 +149,20 @@ public class PlaceholderFragment extends Fragment implements SwipeRefreshLayout.
 		onAddingResult(task);
 	}
 
+    @Background
+    void removeTask(int position) {
+        try {
+            boolean removeResult = Task.remove(mTaskAdapter.getItem(position));
+            if (removeResult) {
+                reloadTasks();
+            } else {
+                Toaster.s(getActivity(), "Remove failed");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toaster.s(getActivity(), "Network error happened during removing");
+        }
+    }
 
 	/**
 	 * @param task
@@ -134,7 +189,8 @@ public class PlaceholderFragment extends Fragment implements SwipeRefreshLayout.
 		try {
 			mTasks = Task.all();
 			updateTaskList(mTasks);
-			updateTagList(mTasks);
+            List<String> tags = TagModel.getTagsFromTasks(mTasks);
+			updateTagList(tags);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -145,10 +201,10 @@ public class PlaceholderFragment extends Fragment implements SwipeRefreshLayout.
 	 */
 	@UiThread
 	void updateTaskList(List<Task> tasks) {
-		mTaskAdapter = new ViewBinderAdapter<Task>(getActivity(), tasks, mTaskViewBinder);
-		mTaskList.setAdapter(mTaskAdapter);
-        mSwipeLayout.setRefreshing(false);
-
+        getTaskAdapter().removeAll();
+        getTaskAdapter().addAll(tasks);
+        //mSwipeLayout.setRefreshing(false);
+        mTaskList.closeOpenedItems();
 
         showNotification();
 	}
@@ -160,34 +216,28 @@ public class PlaceholderFragment extends Fragment implements SwipeRefreshLayout.
     }
 
 	@UiThread
-	void updateTagList(List<Task> tasks) {
-		List<String> tags = new ArrayList<String>();
-		tags.add("All");
-		for (Task task : tasks) {
-			List<String> subTags = getTagsFromString(task.title);
-			for (String tag : subTags) {
-				if (!tags.contains(tag)) {
-					tags.add(tag);
-				}
-			}
-		}
-
-		mTagAdapter = new ViewBinderAdapter<String>(getActivity(), tags, mTagViewBinder);
-		mTagList.setAdapter(mTagAdapter);
-		mTagList.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				if (position == 0) {
-					updateTaskList(mTasks);
-				} else {
-					String tag = mTagAdapter.getItem(position);
-					filterTasks(tag);
-				}
-				mCurrentTag = position;
-				mTagAdapter.notifyDataSetChanged();
-			}
-		});
+	void updateTagList(List<String> tags) {
+        getTagAdapter().removeAll();
+        getTagAdapter().addAll(tags);
 	}
+
+    private ViewBinderAdapter<Task> getTaskAdapter() {
+        if(mTaskAdapter==null) {
+            mTaskAdapter = new ViewBinderAdapter<Task>(getActivity(), Collections.EMPTY_LIST, R.layout.task_item, mTaskViewBinder);
+            mTaskList.setAdapter(mTaskAdapter);
+        }
+
+        return mTaskAdapter;
+    }
+
+    private ViewBinderAdapter<String> getTagAdapter() {
+        if(mTagAdapter==null) {
+            mTagAdapter = new ViewBinderAdapter<String>(getActivity(), Collections.EMPTY_LIST, mTagViewBinder);
+            mTagList.setAdapter(mTagAdapter);
+        }
+
+        return mTagAdapter;
+    }
 
 	/**
 	 * @param tag
@@ -203,25 +253,32 @@ public class PlaceholderFragment extends Fragment implements SwipeRefreshLayout.
 		updateTaskList(tasks);
 	}
 
-	private List<String> getTagsFromString(String str) {
-		List<String> tags = new ArrayList<String>();
-		int start = str.indexOf("#");
-		while (start != -1) {
-			int end = str.indexOf(" ", start);
-			if (end == -1) {
-				end = str.length();
-			}
-			L.l("start: " + start + ", end: " + end);
-			String tag = str.substring(start, end);
-			tags.add(tag);
-			start = str.indexOf("#", end);
-		}
 
-		return tags;
-	}
 
     @Override
     public void onRefresh() {
         reloadTasks();
     }
+
+    private class MySwipeListViewListener extends BaseSwipeListViewListener {
+        @Override
+        public void onClickFrontView(int position) {
+            super.onClickFrontView(position);
+            L.l("click front view");
+        }
+
+        @Override
+        public void onClickBackView(int position) {
+            super.onClickBackView(position);
+            L.l("click back view");
+            mTaskList.closeOpenedItems();
+        }
+
+        @Override
+        public void onStartOpen(int position, int action, boolean right) {
+            super.onStartOpen(position, action, right);
+            mTaskList.closeOpenedItems();
+        }
+    }
+
 }
